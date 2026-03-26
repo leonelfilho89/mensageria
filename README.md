@@ -12,8 +12,14 @@ mvn spring-boot:run
 node index.js
 
 #################################
-#APOS docker compose
+#APOS docker compose:
 sudo docker compose up
 
-#se precisar alterar
+#se precisar alterar:
 sudo docker compose down
+
+#POST para http://localhost:1990/pedido
+{
+  "pedidoId": 1010,
+  "status": "NOVO"
+}
