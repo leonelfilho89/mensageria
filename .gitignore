@@ -1,0 +1,10 @@
+# Java
+java-api/target/
+
+# Node
+node-worker/node_modules/
+
+# geral
+*.log
+.vscode/
+.idea/
