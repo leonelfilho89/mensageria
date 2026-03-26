@@ -1,25 +1,24 @@
 const amqp = require('amqplib');
 
-async function start() {
-  const conn = await amqp.connect('amqp://localhost:1992');
-  const channel = await conn.createChannel();
+async function connectWithRetry() {
+  try {
+    const conn = await amqp.connect('amqp://rabbit:5672');
+    console.log("Conectado ao Rabbit!");
 
-  const filaEntrada = 'fila.teste';
-  const filaRetorno = 'fila.retorno';
+    const channel = await conn.createChannel();
+    const filaEntrada = 'fila.teste';
+    const filaRetorno = 'fila.retorno';
 
-  await channel.assertQueue(filaEntrada);
-  await channel.assertQueue(filaRetorno);
+    await channel.assertQueue(filaEntrada);
+    await channel.assertQueue(filaRetorno);
 
-  console.log("Aguardando mensagens...");
+    console.log("Aguardando mensagens...");
 
-  channel.consume(filaEntrada, (msg) => {
-    
-    const conteudo = JSON.parse(msg.content.toString());
+    channel.consume(filaEntrada, (msg) => {
+      const conteudo = JSON.parse(msg.content.toString());
 
-    console.log("Recebido:", conteudo);
-    
-    // simula processamento
-    setTimeout(() => {
+      console.log("Recebido:", conteudo);
+
       const resposta = {
         pedidoId: conteudo.pedidoId,
         status: "PROCESSADO"
@@ -30,11 +29,13 @@ async function start() {
         Buffer.from(JSON.stringify(resposta))
       );
 
-      console.log("Enviado retorno:", resposta);
-
       channel.ack(msg);
-    }, 2000);
-  });
+    });
+
+  } catch (err) {
+    console.log("Rabbit não disponível, tentando novamente em 5s...");
+    setTimeout(connectWithRetry, 5000);
+  }
 }
 
-start();
+connectWithRetry();

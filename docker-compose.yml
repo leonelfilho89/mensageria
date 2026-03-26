@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+
+  rabbit:
+    image: rabbitmq:3-management
+    container_name: rabbit-estudo
+    ports:
+      - "1992:5672"
+      - "1993:15672"
+
+  node:
+    image: node:18
+    container_name: node-worker
+    working_dir: /app
+    volumes:
+      - ./node-worker:/app
+    command: sh -c "npm install && node index.js"
+    depends_on:
+      - rabbit
+
+  java:
+    image: maven:3.9-eclipse-temurin-8
+    container_name: java-api
+    working_dir: /app
+    volumes:
+      - ./java-api:/app
+    command: mvn spring-boot:run
+    ports:
+      - "1990:1990"
+    depends_on:
+      - rabbit
